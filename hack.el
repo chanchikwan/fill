@@ -1,3 +1,12 @@
+;; Sentence-fill hack
+;; ==================
+;;
+;; The macros here are based on emacs/23.3/lisp/textmodes/fill.el.gz
+;; To use them without modifying emacs, you can simply execute
+;; `cat hack.el >> ~/.emacs`.
+
+(setq newline-after-sentence  t)
+
 (defcustom newline-after-sentence nil
   "Non-nil means put a new line after each sentence."
   :type 'boolean
