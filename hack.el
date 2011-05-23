@@ -130,8 +130,21 @@ space does not end a sentence, so don't break a line there."
 	;; but after any fill prefix on the first line.
 	(fill-delete-newlines from to justify nosqueeze squeeze-after)
 	
+	;; Insert a line break after each sentence
+	(goto-char from)
+	(while (< (point) to)
+	  (forward-sentence)
+	  (if (< (point) to) (fill-newline)))
+	
 	;; This is the actual filling loop.
-	(fill-one-line from to justify))
+	(goto-char from)
+	(let (sentbeg sentend)
+	  (while (< (point) to)
+	    (setq sentbeg (point))
+	    (end-of-line)
+	    (setq sentend (point))
+	    (fill-one-line sentbeg sentend justify) ;; original innner loop
+	    (forward-line))))
 
       ;; Leave point after final newline.
       (goto-char to)
