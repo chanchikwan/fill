@@ -1,3 +1,8 @@
+(defcustom newline-after-sentence nil
+  "Non-nil means put a new line after each sentence."
+  :type 'boolean
+  :group 'fill)
+
 (defun fill-one-line (from to justify)
   (goto-char from)
   (let (linebeg)
@@ -130,21 +135,23 @@ space does not end a sentence, so don't break a line there."
 	;; but after any fill prefix on the first line.
 	(fill-delete-newlines from to justify nosqueeze squeeze-after)
 	
-	;; Insert a line break after each sentence
-	(goto-char from)
-	(while (< (point) to)
-	  (forward-sentence)
-	  (if (< (point) to) (fill-newline)))
-	
-	;; This is the actual filling loop.
-	(goto-char from)
-	(let (sentbeg sentend)
+	(if (not newline-after-sentence)
+	    (fill-one-line from to justify) ;; original innner loop
+	  
+	  ;; Insert a line break after each sentence
+	  (goto-char from)
 	  (while (< (point) to)
-	    (setq sentbeg (point))
-	    (end-of-line)
-	    (setq sentend (point))
-	    (fill-one-line sentbeg sentend justify) ;; original innner loop
-	    (forward-line))))
+	    (forward-sentence)
+	    (if (< (point) to) (fill-newline)))
+	  ;; This is the actual filling loop.
+	  (goto-char from)
+	  (let (sentbeg sentend)
+	    (while (< (point) to)
+	      (setq sentbeg (point))
+	      (end-of-line)
+	      (setq sentend (point))
+	      (fill-one-line sentbeg sentend justify) ;; original innner loop
+	      (forward-line)))))
 
       ;; Leave point after final newline.
       (goto-char to)
