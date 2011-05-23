@@ -1,3 +1,30 @@
+(defun fill-one-line (from to justify)
+  (goto-char from)
+  (let (linebeg)
+    (while (< (point) to)
+      (setq linebeg (point))
+      (move-to-column (current-fill-column))
+      (if (when (< (point) to)
+	    ;; Find the position where we'll break the line.
+	    (forward-char 1) ;Use an immediately following space, if any.
+	    (fill-move-to-break-point linebeg)
+	    ;; Check again to see if we got to the end of
+	    ;; the paragraph.
+	    (skip-chars-forward " \t")
+	    (< (point) to))
+	  ;; Found a place to cut.
+	  (progn
+	    (fill-newline)
+	    (when justify
+	      ;; Justify the line just ended, if desired.
+	      (save-excursion
+		(forward-line -1)
+		(justify-current-line justify nil t))))
+	
+	(goto-char to)
+	;; Justify this last line, if desired.
+	(if justify (justify-current-line justify t t))))))
+
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
   "Fill the region as one paragraph.
@@ -101,35 +128,11 @@ space does not end a sentence, so don't break a line there."
 
 	;; FROM, and point, are now before the text to fill,
 	;; but after any fill prefix on the first line.
-
 	(fill-delete-newlines from to justify nosqueeze squeeze-after)
-
+	
 	;; This is the actual filling loop.
-	(goto-char from)
-	(let (linebeg)
-	  (while (< (point) to)
-	    (setq linebeg (point))
-	    (move-to-column (current-fill-column))
-	    (if (when (< (point) to)
-		  ;; Find the position where we'll break the line.
-		  (forward-char 1) ;Use an immediately following space, if any.
-		  (fill-move-to-break-point linebeg)
-		  ;; Check again to see if we got to the end of
-		  ;; the paragraph.
-		  (skip-chars-forward " \t")
-		  (< (point) to))
-		;; Found a place to cut.
-		(progn
-		  (fill-newline)
-		  (when justify
-		    ;; Justify the line just ended, if desired.
-		    (save-excursion
-		      (forward-line -1)
-		      (justify-current-line justify nil t))))
+	(fill-one-line from to justify))
 
-	      (goto-char to)
-	      ;; Justify this last line, if desired.
-	      (if justify (justify-current-line justify t t))))))
       ;; Leave point after final newline.
       (goto-char to)
       (unless (eobp) (forward-char 1))
